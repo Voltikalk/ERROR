@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Video Playback Error</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* 1. Ловушка: Фейковый плеер */
+        #player-ui {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: white;
+            z-index: 10;
+            position: relative;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #fff;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .btn-retry {
+            background: transparent;
+            border: 1px solid white;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* 2. Эффект смерти GPU (Глитч) */
+        #glitch-layer {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Cfilter id="noise"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.95" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noise)" opacity="1"/%3E%3C/svg%3E');
+            z-index: 20;
+            opacity: 0.8;
+            animation: noise-anim 0.2s infinite linear alternate-reverse;
+        }
+
+        /* Разрыв экрана */
+        .tear {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, red, blue, green);
+            mix-blend-mode: exclusion;
+            opacity: 0.5;
+            display: none;
+            animation: tear-anim 0.1s infinite;
+        }
+
+        @keyframes noise-anim {
+            0% { transform: translate(0,0); }
+            10% { transform: translate(-5%, -5%); }
+            20% { transform: translate(-10%, 5%); }
+            30% { transform: translate(5%, -10%); }
+            40% { transform: translate(-5%, 15%); }
+            50% { transform: translate(-10%, 5%); filter: invert(1); }
+            60% { transform: translate(15%, 0); }
+            70% { transform: translate(0, 10%); }
+            80% { transform: translate(-15%, 0); }
+            90% { transform: translate(10%, 5%); }
+            100% { transform: translate(5%, 0); }
+        }
+
+        /* 3. Экран смерти (Kernel Panic) */
+        #kernel-panic {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            color: #fff;
+            z-index: 30;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            line-height: 1.2;
+            overflow: hidden;
+        }
+
+        /* Финал - Пранк */
+        #prank-reveal {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 40;
+            text-align: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="player-ui">
+        <p style="margin-bottom: 20px;">Ошибка воспроизведения. Поток прерван.</p>
+        <div class="spinner"></div>
+        <button class="btn-retry" onclick="killPhone()">Повторить попытку</button>
+    </div>
+
+    <div id="glitch-layer"></div>
+    <div id="tear-layer" class="tear"></div>
+
+    <div id="kernel-panic"></div>
+
+    <div id="prank-reveal">
+        <img src="https://media1.tenor.com/m/XjC4fA-08cAAAAAC/cat-loading.gif" style="width: 200px; border-radius: 10px;">
+        <p><br>Расслабься, телефон жив.<br>Просто пранк :)</p>
+    </div>
+
+    <script>
+        function killPhone() {
+            // 1. Полноэкранный режим
+            const docEl = document.documentElement;
+            if (docEl.requestFullscreen) { docEl.requestFullscreen().catch(()=>{}); }
+            else if (docEl.webkitRequestFullscreen) { docEl.webkitRequestFullscreen(); }
+
+            document.getElementById('player-ui').style.display = 'none';
+            const glitch = document.getElementById('glitch-layer');
+            const tear = document.getElementById('tear-layer');
+            const panic = document.getElementById('kernel-panic');
+
+            // 2. ЗАПУСК ХАОСА (Глитч)
+            glitch.style.display = 'block';
+            
+            // Дикая вибрация (имитация замыкания)
+            if (navigator.vibrate) {
+                navigator.vibrate([50, 20, 50, 20, 50, 20, 500, 50, 500, 50, 1000]); 
+            }
+
+            // Случайные вспышки "разрыва" экрана
+            let flashes = 0;
+            const flashInterval = setInterval(() => {
+                tear.style.display = (Math.random() > 0.5) ? 'block' : 'none';
+                flashes++;
+                if (flashes > 15) {
+                    clearInterval(flashInterval);
+                    tear.style.display = 'none';
+                    glitch.style.display = 'none';
+                    startKernelPanic(); // Переход к тексту
+                }
+            }, 100);
+        }
+
+        function startKernelPanic() {
+            const panic = document.getElementById('kernel-panic');
+            panic.style.display = 'block';
+
+            // Генерируем страшный текст
+            const logs = [
+                "[    0.000000] Linux version 4.14.113-perf+ (build-user@build-host) (gcc version 4.9.x)",
+                "[    0.234112] CPU0: VIPT non-aliasing data cache, VIPT aliasing instruction cache",
+                "[    1.002311] Unable to handle kernel paging request at virtual address ffffff800",
+                "[    1.002455] pgd = ffffffc023451000",
+                "[    1.002588] [ffffff800] *pgd=0000000000000000",
+                "[    1.002700] Internal error: Oops: 96000004 [#1] PREEMPT SMP",
+                "[    1.002812] Modules linked in: wlan(O) qcau(O)",
+                "[    1.003000] CPU: 4 PID: 1 Comm: init Tainted: G        W  O    4.14.113+",
+                "[    1.003155] Hardware name: Qualcomm Technologies, Inc. SDM845",
+                "[    1.003299] task: ffffffc034512000 task.stack: ffffffc023420000",
+                "[    1.003421] PC is at panic+0x14c/0x2a0",
+                "[    1.003550] LR is at sysrq_handle_crash+0x24/0x30",
+                "[    2.000000] ---[ end trace 1234567890abcdef ]---",
+                "[    2.100000] Kernel panic - not syncing: Fatal exception",
+                "[    2.200000] SMP: failed to stop secondary CPUs",
+                "[    2.300000] Rebooting in 5 seconds..."
+            ];
+
+            let i = 0;
+            // Очень быстрый вывод текста
+            const interval = setInterval(() => {
+                panic.innerHTML += logs[i] + "<br>";
+                if (i >= logs.length - 1) {
+                    // Генерируем бесконечный мусор
+                    panic.innerHTML += `[    ${(2 + i/10).toFixed(6)}] Memory corruption detected at 0x${Math.floor(Math.random()*9999999)}<br>`;
+                    window.scrollTo(0, document.body.scrollHeight);
+                } else {
+                    i++;
+                }
+
+                // Стоп через 4 секунды
+                if (i > 50) {
+                    clearInterval(interval);
+                    showReveal();
+                }
+            }, 50);
+        }
+
+        function showReveal() {
+            document.getElementById('kernel-panic').style.display = 'none';
+            document.getElementById('prank-reveal').style.display = 'block';
+            document.body.style.backgroundColor = '#333';
+        }
+    </script>
+</body>
+</html>
